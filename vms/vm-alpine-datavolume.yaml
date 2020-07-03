@@ -1,0 +1,53 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: vm-alpine-datavolume
+    vm_type: datavolume
+  name: vm-alpine-datavolume
+spec:
+  running: false
+  dataVolumeTemplates:
+  - metadata:
+      creationTimestamp: null
+      name: alpine-dv
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 2Gi
+        storageClassName: nfs
+      source:
+        http:
+          url: http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86_64/alpine-virt-3.12.0-x86_64.iso
+    status: {}
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: vm-alpine-datavolume
+    spec:
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: datavolumedisk1
+          interfaces:
+            - name: masq
+              masquerade: {}
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 64M
+      networks:
+        - name: masq
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - dataVolume:
+          name: alpine-dv
+        name: datavolumedisk1
